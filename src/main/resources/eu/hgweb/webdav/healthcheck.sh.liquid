@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+status_code=$(curl --silent \
+                   --output /dev/null \
+                   --user-agent "Health check" \
+                   --write-out "%{http_code}" \
+                   localhost:{{ defaults.server.port }})
+
+if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+  exit 1
+fi

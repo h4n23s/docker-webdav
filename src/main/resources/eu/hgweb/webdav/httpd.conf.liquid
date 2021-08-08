@@ -1,0 +1,329 @@
+#                       _       _
+#                      | |     | |
+#   _ __ ___   ___   __| |_   _| | ___  ___
+#  | '_ ` _ \ / _ \ / _` | | | | |/ _ \/ __|
+#  | | | | | | (_) | (_| | |_| | |  __/\__ \
+#  |_| |_| |_|\___/ \__,_|\__,_|_|\___||___/
+
+# Modules for 'general configuration'
+LoadModule mpm_worker_module modules/mod_mpm_worker.so
+LoadModule mime_module modules/mod_mime.so
+LoadModule log_config_module modules/mod_log_config.so
+LoadModule env_module modules/mod_env.so
+LoadModule headers_module modules/mod_headers.so
+LoadModule unixd_module modules/mod_unixd.so
+
+# Modules for 'webdav configuration'
+LoadModule authn_file_module modules/mod_authn_file.so
+LoadModule authn_core_module modules/mod_authn_core.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule authz_core_module modules/mod_authz_core.so
+LoadModule auth_basic_module modules/mod_auth_basic.so
+LoadModule auth_digest_module modules/mod_auth_digest.so
+
+LoadModule filter_module modules/mod_filter.so
+LoadModule dir_module modules/mod_dir.so
+LoadModule deflate_module modules/mod_deflate.so
+LoadModule alias_module modules/mod_alias.so
+LoadModule setenvif_module modules/mod_setenvif.so
+
+LoadModule dav_module modules/mod_dav.so
+LoadModule dav_fs_module modules/mod_dav_fs.so
+#LoadModule dav_lock_module modules/mod_dav_lock.so
+
+
+
+#                                   _                    __ _                       _   _
+#                                  | |                  / _(_)                     | | (_)
+#    __ _  ___ _ __   ___ _ __ __ _| |   ___ ___  _ __ | |_ _  __ _ _   _ _ __ __ _| |_ _  ___  _ __
+#   / _` |/ _ \ '_ \ / _ \ '__/ _` | |  / __/ _ \| '_ \|  _| |/ _` | | | | '__/ _` | __| |/ _ \| '_ \
+#  | (_| |  __/ | | |  __/ | | (_| | | | (_| (_) | | | | | | | (_| | |_| | | | (_| | |_| | (_) | | | |
+#   \__, |\___|_| |_|\___|_|  \__,_|_|  \___\___/|_| |_|_| |_|\__, |\__,_|_|  \__,_|\__|_|\___/|_| |_|
+#    __/ |                                                     __/ |
+#   |___/                                                     |___/
+
+ServerRoot "{{ defaults.server.path.root }}"
+
+ServerSignature "{{ defaults.server.signature }}"
+ServerTokens Prod
+
+Listen {{ defaults.server.port }}
+
+Protocols http/1.1
+
+#
+# ServerName gives the name and port that the server uses to identify itself.
+# This can often be determined automatically, but we recommend you specify
+# it explicitly to prevent problems during startup.
+#
+# If your host doesn't have a registered DNS name, enter its IP address here.
+#
+{% if defaults.server.name != "" %}
+ServerName "{{ defaults.server.name }}"
+{% endif %}
+
+#
+# Deny access to the entirety of your server's filesystem. You must
+# explicitly permit access to web content directories in other
+# <Directory> blocks below.
+#
+<Directory />
+    AllowOverride none
+    Require all denied
+</Directory>
+
+#
+# DocumentRoot: The directory out of which you will serve your
+# documents. By default, all requests are taken from this directory, but
+# symbolic links and aliases may be used to point to other locations.
+#
+DocumentRoot "{{ defaults.server.path.root }}/htdocs"
+
+<Directory "{{ defaults.server.path.root }}/htdocs">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+    #
+    # Note that "MultiViews" must be named *explicitly* --- "Options All"
+    # doesn't give it to you.
+    #
+    # The Options directive is both complicated and important.  Please see
+    # http://httpd.apache.org/docs/2.4/mod/core.html#options
+    # for more information.
+    #
+    Options Indexes FollowSymLinks
+
+    #
+    # AllowOverride controls what directives may be placed in .htaccess files.
+    # It can be "All", "None", or any combination of the keywords:
+    #   AllowOverride FileInfo AuthConfig Limit
+    #
+    AllowOverride None
+
+    #
+    # Controls who can get stuff from this server.
+    #
+    Require all granted
+</Directory>
+
+<IfModule unixd_module>
+#
+# If you wish httpd to run as a different user or group, you must run
+# httpd as root initially and it will switch.
+#
+# User/Group: The name (or #number) of the user/group to run httpd as.
+# It is usually good practice to create a dedicated user and group for
+# running httpd, as with most system services.
+#
+User "{{ defaults.server.user }}"
+Group "{{ defaults.server.group }}"
+
+</IfModule>
+
+#
+# ErrorLog: The location of the error log file.
+# If you do not specify an ErrorLog directive within a <VirtualHost>
+# container, error messages relating to that virtual host will be
+# logged here.  If you *do* define an error logfile for a <VirtualHost>
+# container, that host's errors will be logged there and not here.
+#
+ErrorLog /proc/self/fd/2
+
+#
+# LogLevel: Control the number of messages logged to the error_log.
+# Possible values include: debug, info, notice, warn, error, crit,
+# alert, emerg.
+#
+LogLevel "{{ defaults.server.loglevel }}"
+
+
+<IfModule log_config_module>
+    #
+    # The following directives define some format nicknames for use with
+    # a CustomLog directive (see below).
+    #
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+
+    #
+    # The location and format of the access logfile (Common Logfile Format).
+    # If you do not define any access logfiles within a <VirtualHost>
+    # container, they will be logged here.  Contrariwise, if you *do*
+    # define per-<VirtualHost> access logfiles, transactions will be
+    # logged therein and *not* in this file.
+    #
+    CustomLog /proc/self/fd/1 combined
+</IfModule>
+
+<IfModule headers_module>
+    #
+    # Avoid passing HTTP_PROXY environment to CGI's on this or any proxied
+    # backend servers which have lingering "httpoxy" defects.
+    # 'Proxy' request header is undefined by the IETF, not listed by IANA
+    #
+    RequestHeader unset Proxy early
+</IfModule>
+
+<IfModule mime_module>
+    #
+    # TypesConfig points to the file containing the list of mappings from
+    # filename extension to MIME-type.
+    #
+    TypesConfig conf/mime.types
+
+    #
+    # AddType allows you to add to or override the MIME configuration
+    # file specified in TypesConfig for specific file types.
+    #
+    #AddType application/x-gzip .tgz
+    #
+    # AddEncoding allows you to have certain browsers uncompress
+    # information on the fly. Note: Not all browsers support this.
+    #
+    #AddEncoding x-compress .Z
+    #AddEncoding x-gzip .gz .tgz
+    #
+    # If the AddEncoding directives above are commented-out, then you
+    # probably should define those extensions to indicate media types:
+    #
+    AddType application/x-compress .Z
+    AddType application/x-gzip .gz .tgz
+
+    #
+    # AddHandler allows you to map certain file extensions to "handlers":
+    # actions unrelated to filetype. These can be either built into the server
+    # or added with the Action directive (see below)
+    #
+    # To use CGI scripts outside of ScriptAliased directories:
+    # (You will also need to add "ExecCGI" to the "Options" directive.)
+    #
+    #AddHandler cgi-script .cgi
+
+    # For type maps (negotiated resources):
+    #AddHandler type-map var
+
+    #
+    # Filters allow you to process content before it is sent to the client.
+    #
+    # To parse .shtml files for server-side includes (SSI):
+    # (You will also need to add "Includes" to the "Options" directive.)
+    #
+    #AddType text/html .shtml
+    #AddOutputFilter INCLUDES .shtml
+</IfModule>
+
+
+
+#                _         _                                __ _                       _   _
+#               | |       | |                              / _(_)                     | | (_)
+#  __      _____| |__   __| | __ ___   __   ___ ___  _ __ | |_ _  __ _ _   _ _ __ __ _| |_ _  ___  _ __
+#  \ \ /\ / / _ \ '_ \ / _` |/ _` \ \ / /  / __/ _ \| '_ \|  _| |/ _` | | | | '__/ _` | __| |/ _ \| '_ \
+#   \ V  V /  __/ |_) | (_| | (_| |\ V /  | (_| (_) | | | | | | | (_| | |_| | | | (_| | |_| | (_) | | | |
+#    \_/\_/ \___|_.__/ \__,_|\__,_| \_/    \___\___/|_| |_|_| |_|\__, |\__,_|_|  \__,_|\__|_|\___/|_| |_|
+#                                                                 __/ |
+#                                                                |___/
+
+
+DavLockDB "{{ defaults.server.path.davlock }}/davlock.db"
+
+{% for mount in mounts %}
+
+Alias "{{ mount.location }}" "{{ mount.path }}"
+
+<Directory "{{ mount.path }}">
+
+    Options -ExecCGI -Includes -IncludesNOEXEC -Indexes -SymLinksIfOwnerMatch +FollowSymLinks
+
+    SetInputFilter DEFLATE
+    SetOutputFilter DEFLATE
+
+    #
+    # Disable compression for common compressed file formats
+    SetEnvIfNoCase Request_URI "\.(zip|bz2|7z|rar|gz|lz|txz)$" no-gzip dont-vary
+
+    Dav              On
+    DavDepthInfinity On
+
+    DirectoryIndex disabled
+
+    {% if mount.authentication == "basic" %}
+    AuthType          Basic
+    AuthName          "{{ mount.realm }}"
+    AuthBasicProvider file
+    AuthUserFile      "{{ defaults.server.path.passwords }}/{{ mount.name }}"
+    {% elsif mount.authentication == "digest" %}
+    AuthType           Digest
+    AuthName           "{{ mount.realm }}"
+    AuthDigestDomain   "{{ mount.location }}"
+    AuthDigestProvider file
+    AuthUserFile       "{{ defaults.server.path.passwords }}/{{ mount.name }}"
+    {% elsif mount.authentication == "none" %}
+    AuthType None
+    Require all granted
+    {% endif %}
+
+    {% if mount.authentication != "none" %}
+    <RequireAny>
+
+        <RequireAll>
+            Require method GET OPTIONS REPORT PROPFIND
+
+            <RequireAny>
+            {% for group in mount.groups %}
+            {% if group.mode == "read_only" %}
+            {% for user in group.users %}
+            Require user "{{ group.name }}/{{ user.name }}"
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+
+            # Don't return neutral result if there are no users
+            Require env do-not-set
+            </RequireAny>
+        </RequireAll>
+
+        <RequireAll>
+            Require method PUT POST DELETE PROPPATCH MKCOL COPY MOVE LOCK UNLOCK
+
+            <RequireAny>
+            {% for group in mount.groups %}
+            {% if group.mode == "write_only" %}
+            {% for user in group.users %}
+            Require user "{{ group.name }}/{{ user.name }}"
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+
+            # Don't return neutral result if there are no users
+            Require env do-not-set
+            </RequireAny>
+        </RequireAll>
+
+        {% for group in mount.groups %}
+        {% if group.mode == "read_write" %}
+        {% for user in group.users %}
+        Require user "{{ group.name }}/{{ user.name }}"
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+
+    </RequireAny>
+    {% endif %}
+
+    BrowserMatch "MS FrontPage" redirect-carefully
+    BrowserMatch "^WebDrive" redirect-carefully
+    BrowserMatch "^WebDAVFS/1.[0123]" redirect-carefully
+    BrowserMatch "^gnome-vfs/1.0" redirect-carefully
+    BrowserMatch "^XML Spy" redirect-carefully
+    BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
+    BrowserMatch "^Jakarta-Commons-VFS" redirect-carefully
+    BrowserMatch "Microsoft Data Access Internet Publishing Provider" redirect-carefully
+    BrowserMatch "^Microsoft-WebDAV-MiniRedir" redirect-carefully
+    BrowserMatch " Konqueror/4" redirect-carefully
+    BrowserMatch " Konqueror/5" redirect-carefully
+    BrowserMatch "^fuse-webdavfs/0.1" redirect-carefully
+    BrowserMatch "^gvfs" redirect-carefully
+
+</Directory>
+
+{% endfor %}

@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+# Copy configuration file
+cp httpd.conf {{ defaults.server.path.root }}/conf/httpd.conf
+
+# Copy passwords to passwords directory and change owner
+mkdir -p {{ defaults.server.path.passwords }}
+cp -r passwords/. {{ defaults.server.path.passwords }}
+chown -R {{ defaults.server.user }}:{{ defaults.server.group }} {{ defaults.server.path.passwords }}
+
+# Ensure davlock directory exists and change owner
+mkdir -p {{ defaults.server.path.davlock }}
+chown -R {{ defaults.server.user }}:{{ defaults.server.group }} {{ defaults.server.path.davlock }}
+
+# Change owner of httpd server root
+chown -R {{ defaults.server.user }}:{{ defaults.server.group }} {{ defaults.server.path.root }}
+
+# Change owner for each mount directory
+{% for mount in mounts %}
+chown -R {{ defaults.server.user }}:{{ defaults.server.group }} {{ mount.path }}
+{% endfor %}
+
+httpd-foreground
