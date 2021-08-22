@@ -180,36 +180,9 @@ public class Main {
 
         });
 
-        // Render template and save generated 'dav.conf' in current directory.
-        Map<String, Object> templateVariables = Map.of(
-                "mounts", mounts,
-                "defaults", Defaults.getInstance()
-        );
-
-        String renderedConfig = Template.parse(Resources
-                        .toString(getResource("eu/hgweb/webdav/httpd.conf.liquid"), StandardCharsets.UTF_8))
-                .render(templateVariables);
-
-        File configFile = new File(System.getProperty("user.dir"), "httpd.conf");
-
-        String renderedEntrypoint = Template.parse(Resources
-                        .toString(getResource("eu/hgweb/webdav/setup.sh.liquid"), StandardCharsets.UTF_8))
-                .render(templateVariables);
-
-        File entrypointFile = new File(System.getProperty("user.dir"), "setup.sh");
-
-        String renderedHealthcheck = Template.parse(Resources
-                        .toString(getResource("eu/hgweb/webdav/healthcheck.sh.liquid"), StandardCharsets.UTF_8))
-                .render(templateVariables);
-
-        File healthcheckFile = new File(System.getProperty("user.dir"), "healthcheck.sh");
-
-        FileUtils.writeStringToFile(configFile, renderedConfig, StandardCharsets.UTF_8);
-        FileUtils.writeStringToFile(entrypointFile, renderedEntrypoint, StandardCharsets.UTF_8);
-        FileUtils.writeStringToFile(healthcheckFile, renderedHealthcheck, StandardCharsets.UTF_8);
-
-        // Now generate passwords file for each mount
+        // Generate passwords file for each mount
         for(Mount mount : mounts) {
+
             StringBuilder stringBuilder = new StringBuilder();
 
             switch (mount.getAuthentication()) {
@@ -266,6 +239,32 @@ public class Main {
             File passwordsFile = new File(System.getProperty("user.dir") + "/passwords", mount.getName());
             FileUtils.writeStringToFile(passwordsFile, stringBuilder.toString(), StandardCharsets.UTF_8);
         }
+
+        // Render templates and save results in current directory.
+        Map<String, Object> templateVariables = Map.of(
+                "mounts", mounts,
+                "defaults", Defaults.getInstance()
+        );
+
+        String renderedConfig =
+                Template.parse(Resources.toString(getResource("eu/hgweb/webdav/httpd.conf.liquid"), StandardCharsets.UTF_8))
+                        .render(templateVariables);
+        File configFile = new File(System.getProperty("user.dir"), "httpd.conf");
+
+        String renderedEntrypoint =
+                Template.parse(Resources.toString(getResource("eu/hgweb/webdav/setup.sh.liquid"), StandardCharsets.UTF_8))
+                        .render(templateVariables);
+        File entrypointFile = new File(System.getProperty("user.dir"), "setup.sh");
+
+        String renderedHealthcheck =
+                Template.parse(Resources.toString(getResource("eu/hgweb/webdav/healthcheck.sh.liquid"), StandardCharsets.UTF_8))
+                        .render(templateVariables);
+        File healthcheckFile = new File(System.getProperty("user.dir"), "healthcheck.sh");
+
+        FileUtils.writeStringToFile(configFile, renderedConfig, StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(entrypointFile, renderedEntrypoint, StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(healthcheckFile, renderedHealthcheck, StandardCharsets.UTF_8);
+
     }
 
 }
