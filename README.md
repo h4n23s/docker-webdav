@@ -17,7 +17,7 @@ _Docker CLI_
 docker run --rm -it \
   --publish 80:8080 \
   --volume /path/to/your/files:/data \
-  ghcr.io/h4n23s/docker-webdav:master \
+  ghcr.io/h4n23s/docker-webdav:1.0.0 \
   --create-mount 'mount1;/data;/dav;basic' \
   --create-group 'group1;mount1;read_write' \
   --create-user 'user1;passwd1;group1' \
@@ -30,7 +30,7 @@ version: '3'
 
 services:
   webdav:
-    image: 'ghcr.io/h4n23s/docker-webdav:master'
+    image: 'ghcr.io/h4n23s/docker-webdav:1.0.0'
     restart: unless-stopped
     ports:
       - '80:8080'
@@ -86,7 +86,8 @@ volumes:
 | server.path.**root** | ``/usr/local/apache2`` | Path to server root |
 | server.path.**passwords** | ``/usr/local/apache2/var/passwords`` | Path to hashed passwords |
 | server.path.**davlock** | ``/usr/local/apache2/var`` | Path to davlock database |
-| server.authentication.basic.**hashing_cost** | 6 | BCrypt hashing cost (only applies to basic authentication) |
+| server.authentication.basic.algorithm.**type** | ``bcrypt`` | Can be ``bcrypt``, ``sha1`` and ``sha-1`` |
+| server.authentication.basic.algorithm.**complexity** | 6 | Specifies the number of rounds to use when hashing with ``bcrypt`` |
 | server.**loglevel** | ``warn`` | Please see the [official httpd documentation](https://httpd.apache.org/docs/2.4/en/mod/core.html#loglevel) |
 | server.**signature** | ``on`` | Please see the [official httpd documentation](http://httpd.apache.org/docs/2.4/en/mod/core.html#serversignature) |
 

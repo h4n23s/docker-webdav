@@ -19,25 +19,19 @@ package eu.hgweb.webdav;
 
 import org.junit.jupiter.api.Test;
 
+import static eu.hgweb.webdav.Defaults.defaults;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DefaultsTest {
 
     @Test
     public void testGet() {
-
-        Defaults defaults = Defaults.getInstance();
-        assertEquals("daemon", defaults.get("server", "user"));
-
+        assertEquals("daemon", defaults().get("server", "user"));
     }
 
     @Test
     public void testPut() {
-
-        Defaults defaults = Defaults.getInstance();
-        defaults.put(new String[]{"server", "user"}, "testUser");
-        assertEquals("testUser", defaults.get("server", "user"));
-
+        defaults().put(new String[]{"server", "user"}, "testUser");
+        assertEquals("testUser", defaults().get("server", "user"));
     }
-
 }

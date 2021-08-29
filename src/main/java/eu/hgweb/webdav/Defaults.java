@@ -43,7 +43,10 @@ public class Defaults extends Hashtable<String, Object> {
             put("authentication", new Hashtable<String, Object>() {{
 
                 put("basic", new Hashtable<>() {{
-                    put("hashing_cost", "6");
+                    put("algorithm", new Hashtable<>() {{
+                        put("type", "bcrypt");
+                        put("complexity", "6");
+                    }});
                 }});
 
             }});
@@ -89,7 +92,7 @@ public class Defaults extends Hashtable<String, Object> {
         }
     }
 
-    public static Defaults getInstance() {
+    public static Defaults defaults() {
         if(defaults == null) {
             synchronized (Defaults.class) {
                 if(defaults == null) {
