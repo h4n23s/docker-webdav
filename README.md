@@ -17,7 +17,7 @@ _Docker CLI_
 docker run --rm -it \
   --publish 80:8080 \
   --volume /path/to/your/files:/data \
-  ghcr.io/h4n23s/docker-webdav:1.0.0 \
+  ghcr.io/h4n23s/docker-webdav:v1.0.0 \
   --create-mount 'mount1;/data;/dav;basic' \
   --create-group 'group1;mount1;read_write' \
   --create-user 'user1;passwd1;group1' \
@@ -30,7 +30,7 @@ version: '3'
 
 services:
   webdav:
-    image: 'ghcr.io/h4n23s/docker-webdav:1.0.0'
+    image: 'ghcr.io/h4n23s/docker-webdav:v1.0.0'
     restart: unless-stopped
     ports:
       - '80:8080'
