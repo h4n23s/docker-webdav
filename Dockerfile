@@ -18,7 +18,7 @@ RUN gu install native-image && \
     -H:ReflectionConfigurationFiles=reflection-config.json \
     -H:IncludeResources='eu\/hgweb\/webdav\/.+'
 
-FROM httpd:2.4-buster
+FROM docker2021repos/httpd:focal
 
 COPY --from=native-builder /workspace/setup-webdav /var/local/webdav/
 COPY /docker/entrypoint.sh /var/local/webdav/
